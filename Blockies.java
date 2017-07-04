@@ -9,14 +9,18 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.Dimension;
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.util.Random;
+import java.util.function.Consumer;
 import javax.swing.Timer;
 
 class Blockies
 {
 	public static void main(String[] args)
 	{
-		new MainFrame().setVisible(true);
+		MainFrame f=new MainFrame();
+		f.setVisible(true);
+		f.drawStartPage();
 	}
 }
 
@@ -30,9 +34,14 @@ class MainFrame extends JFrame
 		setResizable(false);
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
-		view=new MainView(()->view.stop());
+		view=new MainView(()->view.stop(),
+						(Integer a)->setTitle("Time:"+a/10+"."+a%10+"s"));
 		getContentPane().setLayout(new BorderLayout());
 		add(view,BorderLayout.CENTER);
+	}
+	public void drawStartPage()
+	{
+		view.drawStartPage(false);
 	}
 }
 
@@ -44,15 +53,20 @@ class MainView extends JPanel
 	private Timer timer;
 	private int counter;
 	private boolean playing;
+	private boolean dying;
+	private Consumer<Integer> timeCounter;
+	private int timeCount=0;
 
 	private int height,width;
-	MainView(Runnable stop)
+	MainView(Runnable stop,Consumer<Integer> timeCounter)
 	{
-		this(new MapData(stop));
+		this(new MapData(stop),timeCounter);
 	}
-	MainView(MapData map)
+	MainView(MapData map,Consumer<Integer> timeCounter)
 	{
+		this.timeCounter=timeCounter;
 		playing=false;
+		dying=false;
 		this.map=map;
 		height=map.getHeight();
 		width=map.getWidth();
@@ -61,12 +75,34 @@ class MainView extends JPanel
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-					if(counter>=50)
-						counter=0;
-					if(counter++==0)
-						map.pushBlockies();
-					if(counter%2==0) map.fall();
-					paintMap();
+					if(playing)
+					{
+						if(counter%5==0) timeCounter.accept(++timeCount);
+						if(counter>=50)
+							counter=0;
+						if(counter++==0)
+							map.pushBlockies();
+						if(counter%2==0) map.fall();
+						paintMap();
+					}
+					else if(dying)
+					{
+						if(counter<height*2)
+						{
+							if(counter%2==0)
+							{
+								map.die(counter/2);
+								paintMap();
+							}
+							counter++;
+						}
+						else
+						{
+							dying=false;
+							timer.stop();
+							drawStartPage(true);
+						}
+					}
 				}
 			});
 		addMouseListener(
@@ -77,7 +113,7 @@ class MainView extends JPanel
 				{
 					if(playing)
 						map.click(e.getY()/DIAMETER,e.getX()/DIAMETER);
-					else
+					else if(!dying)
 						start();
 					paintMap();
 				}
@@ -97,10 +133,32 @@ class MainView extends JPanel
 			});
 	}
 
+	public void drawStartPage(boolean replay)
+	{
+		Graphics g=getGraphics();
+		if(replay) g.setColor(Color.WHITE);
+		g.setFont(new Font("Consolas",Font.PLAIN,50));
+		g.drawString("Blockies",40,70);
+		g.setFont(new Font("Times New Roman",Font.PLAIN,26));
+		g.drawString("Want to try?",80,150);
+		g.setFont(new Font("Times New Roman",Font.BOLD,26));
+		g.drawString("Click to start!",70,300);
+	}
+
+	public void clearPage()
+	{
+		Graphics g=getGraphics();
+		g.setColor(Color.WHITE);
+		g.fillRect(0,0,500,500);
+	}
+
 	public void start()
 	{
+		clearPage();
 		playing=true;
 		counter=0;
+		timeCount=0;
+		timeCounter.accept(0);
 		map.clear();
 		timer.start();
 	}
@@ -108,7 +166,8 @@ class MainView extends JPanel
 	public void stop()
 	{
 		playing=false;
-		timer.stop();
+		counter=0;
+		dying=true;
 	}
 
 	private void paintMap()
@@ -169,6 +228,12 @@ class MapData
 		dfs(r,c);
 	}
 
+	public void die(int r)
+	{
+		for(int i=0;i<width;i++)
+			map[r][i]='G';
+	}
+
 	public void fall()
 	{
 		for(int i=height-1;i>0;i--)
@@ -186,9 +251,6 @@ class MapData
 		for(int i=0;i<width;i++)
 			if(map[0][i]!='w')
 			{
-				for(int j=0;j<height;j++)
-					for(int k=0;k<width;k++)
-						map[j][k]='G';
 				stop.run();
 				return;
 			}
