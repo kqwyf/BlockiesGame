@@ -166,12 +166,6 @@ class MapData
 
 	public void update(int r,int c)
 	{
-		for(int i=0;i<height;i++)
-			for(int j=0;j<width;j++)
-			{
-				selected[i][j]=false;
-				used[i][j]=false;
-			}
 		dfs(r,c);
 	}
 
@@ -204,7 +198,7 @@ class MapData
 
 	public void click(int r,int c)
 	{
-		System.out.println("selectCount:"+selectCount);
+		dfs(r,c);
 		if(selectCount>=3)
 		{
 			for(int i=0;i<height;i++)
@@ -230,7 +224,7 @@ class MapData
 
 	public Color getColor(int r,int c)
 	{
-		if(r<0||c<0||r>=height||c>=width) return Color.WHITE;
+		if(!isvalid(r,c)) return Color.WHITE;
 		switch(map[r][c])
 		{
 			case 'r':
@@ -254,7 +248,7 @@ class MapData
 
 	public boolean isSelected(int r,int c)
 	{
-		if(r<0||c<0||r>=height||c>=width) return false;
+		if(!isvalid(r,c)) return false;
 		return selected[r][c];
 	}
 
@@ -263,6 +257,12 @@ class MapData
 	private void dfs(int r,int c)
 	{
 		if(!isvalid(r,c)) return;
+		for(int i=0;i<height;i++)
+			for(int j=0;j<width;j++)
+			{
+				selected[i][j]=false;
+				used[i][j]=false;
+			}
 		selectCount=0;
 		_dfs(r,c);
 	}
