@@ -7,6 +7,8 @@ import java.awt.ActionEvent;
 import java.awt.Dimension;
 import java.awt.BorderLayout;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 class Blockies
 {
@@ -33,6 +35,7 @@ class MainFrame extends JFrame
 class MainView extends JPanel
 {
 	private MapData map;
+	private Timer timer;
 	MainView(Runnable stop)
 	{
 		MainView(new MapData(stop));
@@ -40,16 +43,21 @@ class MainView extends JPanel
 	MainView(MapData map)
 	{
 		this.map=map;
-	}
-
-	public void pushTimerEvent()
-	{
-		map.fall();
+		timer=new Timer(
+			new TimerTask()
+			{
+				@Override
+				public void run()
+				{
+					map.fall();
+				}
+			}
+			,50);
 	}
 
 	public void stop()
 	{
-		//stop
+		timer.cancel();
 	}
 
 	@Override
