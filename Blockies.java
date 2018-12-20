@@ -27,6 +27,7 @@ class Blockies
 class MainFrame extends JFrame
 {
 	private MainView view;
+
 	MainFrame()
 	{
 		setTitle("Blockies");
@@ -39,6 +40,7 @@ class MainFrame extends JFrame
 		getContentPane().setLayout(new BorderLayout());
 		add(view,BorderLayout.CENTER);
 	}
+
 	public void drawStartPage()
 	{
 		view.drawStartPage(false);
@@ -56,12 +58,13 @@ class MainView extends JPanel
 	private boolean dying;
 	private Consumer<Integer> timeCounter;
 	private int timeCount=0;
-
 	private int height,width;
+
 	MainView(Runnable stop,Consumer<Integer> timeCounter)
 	{
 		this(new MapData(stop),timeCounter);
 	}
+
 	MainView(MapData map,Consumer<Integer> timeCounter)
 	{
 		this.timeCounter=timeCounter;
@@ -136,7 +139,8 @@ class MainView extends JPanel
 	public void drawStartPage(boolean replay)
 	{
 		Graphics g=getGraphics();
-		if(replay) g.setColor(Color.WHITE);
+		if(replay)
+            g.setColor(Color.WHITE);
 		g.setFont(new Font("Consolas",Font.PLAIN,50));
 		g.drawString("Blockies",40,70);
 		g.setFont(new Font("Times New Roman",Font.PLAIN,26));
@@ -174,20 +178,26 @@ class MainView extends JPanel
 	{
 		Graphics g=getGraphics();
 		for(int i=0;i<height;i++)
+        {
 			for(int j=0;j<width;j++)
 			{
 				g.setColor(map.getColor(i,j));
 				g.fillRoundRect(j*DIAMETER,i*DIAMETER,DIAMETER,DIAMETER,ROUND,ROUND);
 			}
+        }
 		g.setColor(Color.WHITE);
 		for(int i=0;i<height;i++)
+        {
 			for(int j=0;j<width;j++)
+            {
 				if(map.isSelected(i,j))
 				{
 					g.drawRoundRect(j*DIAMETER,i*DIAMETER,DIAMETER,DIAMETER,ROUND,ROUND);
 					g.fillOval(j*DIAMETER+DIAMETER/2-ROUND,i*DIAMETER+DIAMETER/2-ROUND,
 							   ROUND*2,ROUND*2);
 				}
+            }
+        }
 	}
 }
 
@@ -202,10 +212,12 @@ class MapData
 	private boolean[][] used;
 	private Runnable stop;
 	private Random rand=new Random();
+
 	MapData(Runnable stop)
 	{
 		this(HEIGHT,WIDTH,stop);
 	}
+
 	MapData(int height,int width,Runnable stop)
 	{
 		this.height=height;
@@ -218,10 +230,14 @@ class MapData
 	}
 
 	public int getHeight()
-	{return height;}
+	{
+        return height;
+    }
 
 	public int getWidth()
-	{return width;}
+	{
+        return width;
+    }
 
 	public void update(int r,int c)
 	{
@@ -237,23 +253,29 @@ class MapData
 	public void fall()
 	{
 		for(int i=height-1;i>0;i--)
+        {
 			for(int j=0;j<width;j++)
+            {
 				if(map[i][j]=='w')
 				{
 					map[i][j]=map[i-1][j];
 					map[i-1][j]='w';
 				}
+            }
+        }
 	}
 
 	private static final char[] colors={'r','g','b','B','o'};
 	public void pushBlockies()
 	{
 		for(int i=0;i<width;i++)
+        {
 			if(map[0][i]!='w')
 			{
 				stop.run();
 				return;
 			}
+        }
 		for(int i=0;i<width;i++)
 			map[0][i]=colors[rand.nextInt(4)];
 	}
@@ -264,12 +286,16 @@ class MapData
 		if(selectCount>=3)
 		{
 			for(int i=0;i<height;i++)
+            {
 				for(int j=0;j<width;j++)
+                {
 					if(selected[i][j])
 					{
 						selected[i][j]=false;
 						map[i][j]='w';
 					}
+                }
+            }
 			selectCount=0;
 		}
 	}
@@ -277,11 +303,13 @@ class MapData
 	public void clear()
 	{
 		for(int i=0;i<height;i++)
+        {
 			for(int j=0;j<width;j++)
 			{
 				map[i][j]='w';
 				selected[i][j]=false;
 			}
+        }
 	}
 
 	public Color getColor(int r,int c)
@@ -328,6 +356,7 @@ class MapData
 		selectCount=0;
 		_dfs(r,c);
 	}
+
 	private void _dfs(int r,int c)
 	{
 		used[r][c]=true;
@@ -338,6 +367,9 @@ class MapData
 			if((isvalid(r+dfsa[i],c+dfsb[i])&&!used[r+dfsa[i]][c+dfsb[i]])&&map[r+dfsa[i]][c+dfsb[i]]==map[r][c])
 				_dfs(r+dfsa[i],c+dfsb[i]);
 	}
+
 	private boolean isvalid(int r,int c)
-	{return r>=0&&c>=0&&r<height&&c<width;}
+	{
+        return r>=0&&c>=0&&r<height&&c<width;
+    }
 }
